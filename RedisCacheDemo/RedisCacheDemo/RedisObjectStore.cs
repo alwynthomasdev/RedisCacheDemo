@@ -11,8 +11,23 @@ namespace RedisCacheDemo
 {
     public interface IRedisObjectStore<T>
     {
+        /// <summary>
+        /// Get an object stored in redis by key
+        /// </summary>
+        /// <param name="key">The key used to stroe object</param>
         T Get(string key);
+        
+        /// <summary>
+        /// Save an object in redis
+        /// </summary>
+        /// <param name="key">The key to stroe object against</param>
+        /// <param name="obj">The object to store</param>
         void Save(string key, T obj);
+
+        /// <summary>
+        /// Delete an object from redis using a key
+        /// </summary>
+        /// <param name="key">The key the object is stored using</param>
         void Delete(string key);
     }
 
@@ -27,10 +42,6 @@ namespace RedisCacheDemo
 
         public T Get(string key)
         {
-            //make sure key is good
-            if (string.IsNullOrWhiteSpace(key) || key.Contains(":"))
-                throw new ArgumentException("invalid key");
-
             key = GenerateKey(key);
             var hash = _DB.HashGetAll(key);
 
@@ -39,10 +50,6 @@ namespace RedisCacheDemo
 
         public void Save(string key, T obj)
         {
-            //make sure key is good
-            if (string.IsNullOrWhiteSpace(key) || key.Contains(":"))
-                throw new ArgumentException("invalid key");
-
             if(obj!=null)
             {
                 var hash = GenerateRedisHash(obj);
@@ -63,9 +70,11 @@ namespace RedisCacheDemo
 
         #region Helpers
 
+        //generate a key from a given key and the class name of the object we are storing
         string GenerateKey(string key) =>
             string.Concat(key.ToLower(), ":", NameOfT.ToLower());
 
+        //create a hash entry array from object using reflection
         HashEntry[] GenerateRedisHash(T obj)
         {
             var props = PropertiesOfT;
@@ -77,6 +86,7 @@ namespace RedisCacheDemo
             return hash;
         }
 
+        //build object from hash entry array using reflection
         T MapFromHash(HashEntry[] hash)
         {
             var obj = (T)Activator.CreateInstance(TypeOfT);//new instance of T

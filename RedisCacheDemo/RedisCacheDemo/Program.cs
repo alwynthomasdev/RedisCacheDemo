@@ -17,51 +17,50 @@ namespace RedisCacheDemo
         static void Main(string[] args)
         {
 
-            var RedisConnection = RedisConnectionFactory.GetConnection();
+            //create redis connection and database
 
+            var RedisConnection = RedisConnectionFactory.GetConnection();
             var db = RedisConnection.GetDatabase();
 
-            //for (int i = 0; i < _iterations; i++)
-            //{
-            //    var key = string.Format("k_{0}", i);
-            //    var value = RandomVal();
-            //    db.StringSet(key, value);
-            //}
+            //string demo
 
-            //Console.WriteLine("Data Saved...");
-            //Console.ReadLine();
-            //Console.WriteLine("\n");
+            string inputStringData = "A little bit of string  data.";
 
-            //for (int i = 0; i < _iterations; i++)
-            //{
-            //    var key = string.Format("k_{0}", i);
-            //    var value = (int)db.StringGet(key);
-            //    Console.WriteLine("{0} => {1}", key, value);
-            //}
+            db.StringSet("StringData", inputStringData);
 
-            //var randomDataSore = new RedisObjectStore<RandomData>(db);
-            //var dataIn = new RandomData { ID = 1, StringData = "Some String Data!", IntegerData = 1234 };
-            //randomDataSore.Save(dataIn.ID.ToString(), dataIn);
+            string outputStringData = db.StringGet("StringData");
 
-            //var dataOut = randomDataSore.Get("1");
+            db.KeyDelete("StringData");
 
-            //randomDataSore.Delete("1");
+            //integer demo
 
-            //dataOut = randomDataSore.Get("1");
+            int inputIntData = 3855;
 
-            //Console.WriteLine("\n");
-            //Console.ReadLine();
+            db.StringSet("IntData", inputIntData);
+
+            int outputIntData = (int)db.StringGet("IntData");
+
+            db.KeyDelete("IntData");
+
+            //hash demo
+
+            var redisObjectStore = new RedisObjectStore<ExampleData>(db);
+
+            var objDataIn = new ExampleData { Reference = Guid.NewGuid(), IntegerData = 4967, StringData = "This is an example of how to store object data in a hash" };
+
+            redisObjectStore.Save(objDataIn.Reference.ToString(), objDataIn);
+
+            var objDataOut = redisObjectStore.Get(objDataIn.Reference.ToString());
+
+            redisObjectStore.Delete(objDataIn.Reference.ToString());
 
         }
 
-        static int RandomVal() =>
-            new Random(DateTime.Now.Millisecond).Next(1111, 9999);
-
     }
 
-    public class RandomData
+    public class ExampleData
     {
-        public int ID { get; set; }
+        public Guid Reference { get; set; }
         public string StringData { get; set; }
         public int IntegerData { get; set; }
     }
